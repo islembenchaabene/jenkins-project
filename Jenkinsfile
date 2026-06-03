@@ -6,14 +6,21 @@ pipeline {
         maven 'maven3'
     }
 
+    environment {
+        DOCKER_USER     = 'islembenchaabene'
+        IMAGE_NAME      = 'student-management'
+        IMAGE_TAG       = '1.0.0'
+        // SOLUTION : On déclare la variable d'environnement ici globalement
+        DOCKER_BUILDKIT = '0'
+    }
+
     stages {
 
         stage('Clone') {
             steps {
-                echo 'Repository already cloned by Jenkins'
+                git branch: 'main', url: 'https://github.com/islembenchaabene/jenkins-project.git'
             }
         }
-
         stage('Clean') {
             steps {
                 sh 'mvn clean'
@@ -22,9 +29,26 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn install -DskipTests'
+                sh 'mvn package -DskipTests'
             }
         }
 
+        stage('Docker Build & Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', 
+                                                 usernameVariable: 'DOCKER_HUB_USER', 
+                                                 passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
+                    
+                    // 1. Connexion automatique à Docker Hub
+                    sh "echo \$DOCKER_HUB_PASSWORD | docker login -u \$DOCKER_HUB_USER --password-stdin"
+                    
+                    // 2. Construction de l'image Docker (Build)
+                    sh "docker build -t ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                    
+                    // 3. Envoi de l'image sur Docker Hub (Push)
+                    sh "docker push ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
     }
 }
