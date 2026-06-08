@@ -1,3 +1,4 @@
+
 package tn.esprit.studentmanagement.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,8 +9,8 @@ import tn.esprit.studentmanagement.repositories.DepartmentRepository;
 import java.util.List;
 
 @Service
-
 public class DepartmentService implements IDepartmentService {
+    
     @Autowired
     DepartmentRepository departmentRepository;
 
@@ -20,7 +21,8 @@ public class DepartmentService implements IDepartmentService {
 
     @Override
     public Department getDepartmentById(Long idDepartment) {
-        return departmentRepository.findById(idDepartment).get();
+        //  Correction du bug Optional : renvoie null proprement si l'ID n'existe pas
+        return departmentRepository.findById(idDepartment).orElse(null);
     }
 
     @Override
@@ -30,6 +32,6 @@ public class DepartmentService implements IDepartmentService {
 
     @Override
     public void deleteDepartment(Long idDepartment) {
-departmentRepository.deleteById(idDepartment);
+        departmentRepository.deleteById(idDepartment);
     }
 }
